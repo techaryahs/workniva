@@ -3,6 +3,7 @@ import { getPrice } from '../../lib/booking';
 import { format } from 'date-fns';
 import { Calendar, Clock, Users, ArrowRight, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
+import logoImg from '../../assets/logo.png';
 
 interface BookingSummaryProps {
   state: BookingState;
@@ -26,7 +27,13 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-6 flex flex-col h-full sticky top-24">
-      <h2 className="text-xl font-bold mb-6 pb-4 border-b border-slate-100">Booking Summary</h2>
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">Booking Summary</h2>
+          <p className="text-xs text-slate-500 font-medium">WorkNiva Prime Reservation</p>
+        </div>
+        <img src={logoImg} alt="WorkNiva" className="w-9 h-9 rounded-lg shadow-xs object-contain" />
+      </div>
       
       <div className="space-y-4 flex-grow mb-8">
         <div className="flex items-start gap-3">

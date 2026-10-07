@@ -5,9 +5,10 @@ import { getMyBookings } from '../services/bookingService';
 import Navbar from '../sections/Navbar';
 import Footer from '../sections/Footer';
 import { Button } from '../components/ui/Button';
-import { Calendar, Clock, Users, Building2 } from 'lucide-react';
+import { Calendar, Clock, Users } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { clsx } from 'clsx';
+import logoImg from '../assets/logo.png';
 
 const MyBookingsPage = () => {
   const navigate = useNavigate();
@@ -63,9 +64,7 @@ const MyBookingsPage = () => {
             <div className="py-20 text-center text-slate-500">Loading bookings...</div>
           ) : filteredBookings.length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-              <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building2 className="w-8 h-8" />
-              </div>
+              <img src={logoImg} alt="WorkNiva" className="w-16 h-16 rounded-2xl shadow-sm mx-auto mb-4 object-contain" />
               <h3 className="text-xl font-bold mb-2">No {activeTab.toLowerCase()} bookings</h3>
               <p className="text-slate-500 mb-6 max-w-md mx-auto">
                 {activeTab === 'Upcoming' 

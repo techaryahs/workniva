@@ -3,4 +3,4 @@ Disallow: /admin
 Disallow: /booking/confirmation
 Disallow: /my-bookings
 
-Sitemap: https://rentoffice.example.com/sitemap.xml
+Sitemap: https://workniva.com/sitemap.xml

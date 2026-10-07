@@ -3,6 +3,7 @@ import type { Booking } from '../types/booking';
 import Navbar from '../sections/Navbar';
 import Footer from '../sections/Footer';
 import { Button } from '../components/ui/Button';
+import BrandLogo from '../components/ui/BrandLogo';
 import { CheckCircle2, Calendar, Clock, Users, ArrowRight, Download, CalendarPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, parseISO } from 'date-fns';
@@ -30,6 +31,9 @@ const BookingConfirmationPage = () => {
           >
             <div className="bg-green-50 p-8 md:p-12 text-center border-b border-green-100 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+              <div className="flex justify-center mb-6">
+                <BrandLogo size="md" withLink={false} />
+              </div>
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -39,7 +43,7 @@ const BookingConfirmationPage = () => {
                 <CheckCircle2 className="w-10 h-10 text-green-600" />
               </motion.div>
               <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">Booking Confirmed</h1>
-              <p className="text-slate-600 text-lg">Your You Work space has been successfully reserved.</p>
+              <p className="text-slate-600 text-lg">Your WorkNiva workspace suite has been successfully reserved.</p>
             </div>
             
             <div className="p-8 md:p-12">

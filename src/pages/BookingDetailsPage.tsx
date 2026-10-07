@@ -5,10 +5,11 @@ import { getBookingById, cancelMyBooking } from '../services/bookingService';
 import Navbar from '../sections/Navbar';
 import Footer from '../sections/Footer';
 import { Button } from '../components/ui/Button';
-import { Calendar, Clock, ArrowLeft, MapPin, AlertCircle, X } from 'lucide-react';
+import { Calendar, Clock, ArrowLeft, AlertCircle, X } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
+import logoImg from '../assets/logo.png';
 
 const BookingDetailsPage = () => {
   const { bookingId } = useParams();
@@ -125,13 +126,11 @@ const BookingDetailsPage = () => {
                         <p className="text-sm text-slate-500">{booking.duration}</p>
                       </div>
                     </div>
-                    <div className="flex gap-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                        <MapPin className="w-5 h-5" />
-                      </div>
+                    <div className="flex gap-4 items-center">
+                      <img src={logoImg} alt="WorkNiva" className="w-10 h-10 rounded-xl shadow-xs object-contain shrink-0" />
                       <div>
-                        <p className="font-semibold text-slate-800">You Work Prime Location</p>
-                        <p className="text-sm text-slate-500">123 Business Avenue, Tech District</p>
+                        <p className="font-semibold text-slate-800">WorkNiva Prime HQ</p>
+                        <p className="text-sm text-slate-500">Sector 15, CBD Belapur, Navi Mumbai</p>
                       </div>
                     </div>
                   </div>

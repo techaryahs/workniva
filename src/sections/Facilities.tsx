@@ -100,7 +100,7 @@ export default function Facilities() {
               <div className="space-y-6 text-deep-charcoal/80 mb-8">
                 <p className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-terracotta mt-0.5 shrink-0" />
-                  <span><strong>You Work</strong><br />Sector 15, CBD Belapur, Navi Mumbai, Maharashtra 400614</span>
+                  <span><strong>WorkNiva Prime HQ</strong><br />Sector 15, CBD Belapur, Navi Mumbai, Maharashtra 400614</span>
                 </p>
                 <p className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-terracotta mt-0.5 shrink-0" />

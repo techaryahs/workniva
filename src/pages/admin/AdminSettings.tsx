@@ -5,7 +5,7 @@ const AdminSettings = () => {
     <div className="space-y-6 max-w-4xl">
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Settings</h1>
-        <p className="text-slate-500">Manage your You Work configuration.</p>
+        <p className="text-slate-500">Manage your WorkNiva enterprise configuration.</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -15,11 +15,11 @@ const AdminSettings = () => {
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Business Name</label>
-            <input type="text" defaultValue="You Work Prime" className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
+            <input type="text" defaultValue="WorkNiva Prime" className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-            <input type="email" defaultValue="hello@youwork.example.com" className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
+            <input type="email" defaultValue="support@workniva.com" className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>

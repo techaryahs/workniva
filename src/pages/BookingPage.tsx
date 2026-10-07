@@ -109,8 +109,8 @@ const BookingPage = () => {
         key: order.key_id,
         amount: order.amount,
         currency: order.currency,
-        name: "You Work",
-        description: "Booking Payment",
+        name: "WorkNiva",
+        description: "WorkNiva Workspace Reservation",
         order_id: order.order_id,
         handler: async function (response: any /* eslint-disable-line */ /* eslint-disable-line */ ) {
           try {
