@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin
+Disallow: /booking/confirmation
+Disallow: /my-bookings
+
+Sitemap: https://rentoffice.example.com/sitemap.xml
