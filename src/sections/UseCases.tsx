@@ -73,7 +73,7 @@ export default function UseCases() {
                 transition={{ delay: 0.1 }}
                 className="text-lg text-warm-ivory/80 mb-8 leading-relaxed"
               >
-                Early morning meeting? Late-night project? Interview after office hours? You Work is available when you need it.
+                Early morning pitch? Late-night closing session? High-stakes interview after standard office hours? WorkNiva is ready whenever you need it.
               </motion.p>
               <ul className="space-y-4 mb-8 text-warm-ivory/90">
                 <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-terracotta" /> 24/7 Availability</li>

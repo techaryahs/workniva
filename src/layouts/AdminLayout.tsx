@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Calendar as CalendarIcon, Users, Settings, Clock, IndianRupee, Menu, X, ArrowLeft, Bell, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import BrandLogo from '../components/ui/BrandLogo';
 
 const NAV_ITEMS = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -54,7 +55,7 @@ export const AdminLayout = () => {
               className="absolute left-0 top-0 bottom-0 w-64 bg-slate-900 text-white flex flex-col z-50 shadow-2xl"
             >
               <div className="p-6 flex items-center justify-between border-b border-slate-800">
-                <span className="text-xl font-bold tracking-tight">You Work Admin</span>
+                <BrandLogo size="sm" variant="light" withLink={false} />
                 <button onClick={() => setIsMobileMenuOpen(false)}>
                   <X className="w-6 h-6 text-slate-400" />
                 </button>
@@ -92,7 +93,7 @@ export const AdminLayout = () => {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-slate-900 text-white fixed inset-y-0 z-10">
         <div className="p-6 border-b border-slate-800">
-          <span className="text-xl font-bold tracking-tight">You Work Admin</span>
+          <BrandLogo size="md" variant="light" withLink={false} />
         </div>
         <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
           {NAV_ITEMS.map((item) => {
