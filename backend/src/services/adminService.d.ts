@@ -1,0 +1,9 @@
+export declare const getAdminBookingsService: () => Promise<any[]>;
+export declare const updateBookingStatusService: (id: string, status: string) => Promise<any>;
+export declare const getPricingService: () => Promise<any[]>;
+export declare const updatePricingService: (id: string, updates: any) => Promise<void>;
+export declare const getBlockedTimesService: () => Promise<any[]>;
+export declare const blockTimeService: (userId: string, blocked: any) => Promise<any>;
+export declare const unblockTimeService: (id: string) => Promise<void>;
+export declare const getAdminCustomersService: () => Promise<any[]>;
+//# sourceMappingURL=adminService.d.ts.map
