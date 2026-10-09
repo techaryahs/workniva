@@ -12,7 +12,9 @@ const createOrder = async (req, res) => {
         res.json({ success: true, data: orderData });
     }
     catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        console.error("Razorpay Create Order Error:", error);
+        const errorMessage = error?.error?.description || error.message || "Failed to create payment order";
+        res.status(400).json({ success: false, message: errorMessage });
     }
 };
 exports.createOrder = createOrder;

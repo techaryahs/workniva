@@ -1,6 +1,0 @@
-User-agent: *
-Disallow: /admin
-Disallow: /booking/confirmation
-Disallow: /my-bookings
-
-Sitemap: https://workniva.com/sitemap.xml
