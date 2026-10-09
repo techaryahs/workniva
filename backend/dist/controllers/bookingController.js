@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cancelBooking = exports.getBookingById = exports.getMyBookings = exports.createBooking = void 0;
+exports.checkAvailability = exports.cancelBooking = exports.getBookingById = exports.getMyBookings = exports.createBooking = void 0;
 const bookingService_1 = require("../services/bookingService");
 const createBooking = async (req, res) => {
     try {
@@ -8,7 +8,8 @@ const createBooking = async (req, res) => {
         res.status(201).json({ success: true, data: booking });
     }
     catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        console.error("Booking Creation Error:", error);
+        res.status(400).json({ success: false, message: error.message || "Unknown error occurred" });
     }
 };
 exports.createBooking = createBooking;
@@ -42,3 +43,13 @@ const cancelBooking = async (req, res) => {
     }
 };
 exports.cancelBooking = cancelBooking;
+const checkAvailability = async (req, res) => {
+    try {
+        const data = await (0, bookingService_1.checkAvailabilityService)(req.body);
+        res.json({ success: true, data });
+    }
+    catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+exports.checkAvailability = checkAvailability;

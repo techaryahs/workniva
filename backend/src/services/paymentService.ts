@@ -65,7 +65,13 @@ export const createPaymentOrderService = async (userId: string, bookingId: strin
     .single();
 
   if (paymentError) {
-    throw new Error('Failed to create payment record');
+    console.error('Failed to create payment record in DB:', {
+      message: paymentError.message,
+      code: paymentError.code,
+      details: paymentError.details,
+      hint: paymentError.hint
+    });
+    throw new Error('Failed to create payment record: ' + paymentError.message);
   }
 
   // Update booking status if not already

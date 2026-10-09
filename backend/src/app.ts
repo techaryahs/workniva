@@ -6,7 +6,6 @@ import { config } from './config/env';
 
 import authRoutes from './routes/authRoutes';
 import bookingRoutes from './routes/bookingRoutes';
-import availabilityRoutes from './routes/availabilityRoutes';
 import adminRoutes from './routes/adminRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 
@@ -14,7 +13,30 @@ const app = express();
 
 
 app.use(helmet());
-app.use(cors({ origin: config.frontendUrl }));
+
+// Configure CORS to properly connect a separate frontend and backend
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    const allowedOrigins = [
+      config.frontendUrl,
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://localhost'
+    ];
+    
+    // Allow requests with no origin (like mobile apps, curl) or if origin is in the allowed list
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked request from origin: ${origin}`));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json({ limit: '10kb' })); // Request size limit
 
 // Rate limiting
@@ -34,7 +56,6 @@ app.get('/api/health', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
-app.use('/api/availability', availabilityRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
 

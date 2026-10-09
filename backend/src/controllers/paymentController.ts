@@ -16,7 +16,9 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
     const orderData = await createPaymentOrderService(req.user!.id, bookingId);
     res.json({ success: true, data: orderData });
   } catch (error: any) {
-    res.status(400).json({ success: false, message: error.message });
+    console.error("Razorpay Create Order Error:", error);
+    const errorMessage = error?.error?.description || error.message || "Failed to create payment order";
+    res.status(400).json({ success: false, message: errorMessage });
   }
 };
 

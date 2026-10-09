@@ -24,15 +24,57 @@ export const requireAuth = async (req: AuthRequest, res: Response, next: NextFun
       return res.status(401).json({ success: false, message: 'Invalid token' });
     }
 
+    // Create a scoped client with the user's token to query on their behalf
+    const userSupabase = supabase; // Fallback
+    const { createClient } = require('@supabase/supabase-js');
+    const { config } = require('../config/env');
+    const scopedSupabase = createClient(config.supabaseUrl, config.supabaseServiceKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    });
+
     // Fetch user profile to get role
-    const { data: profile, error: profileError } = await supabase
+    let { data: profile, error: profileError } = await scopedSupabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
 
     if (profileError || !profile) {
-      return res.status(401).json({ success: false, message: 'User profile not found' });
+      // Safe recovery mechanism for users missing profiles
+      console.warn(`Profile missing for user ${user.id}. Attempting recovery.`);
+      
+      const newProfile = {
+        id: user.id,
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Unknown User',
+        email: user.email || `${user.id}@placeholder.com`,
+        role: 'customer'
+      };
+
+      const { data: recoveredProfile, error: recoveryError } = await supabase
+        .from('profiles')
+        .insert(newProfile)
+        .select('role')
+        .single();
+        
+      if (recoveryError || !recoveredProfile) {
+        console.error('Failed to recover profile:', recoveryError);
+        
+        // Provide a clearer error message indicating the backend key is misconfigured
+        if (recoveryError?.code === '42501') {
+          return res.status(401).json({ 
+            success: false, 
+            message: 'User profile not found. Safe recovery failed due to Row-Level Security. Please ensure backend SUPABASE_SERVICE_ROLE_KEY is correctly set in .env and is NOT the anon key.' 
+          });
+        }
+        
+        return res.status(401).json({ success: false, message: 'User profile not found and recovery failed' });
+      }
+      
+      profile = recoveredProfile;
     }
 
     req.user = {
