@@ -30,7 +30,6 @@ export const pricingPlans: PricingPlan[] = [
 
 export const faqs: FaqItem[] = [
   { question: 'How do I access the office?', answer: 'You will receive a smart lock code 15 minutes before your booking starts.' },
-  { question: 'Is parking available?', answer: 'Yes, we have dedicated parking spots for guests.' },
   { question: 'Can I cancel my booking?', answer: 'Cancellations made 24 hours in advance are fully refunded.' },
   { question: 'Are there hidden fees?', answer: 'No, the price you see is the price you pay. All amenities are included.' },
   { question: 'Can I bring guests?', answer: 'Yes, our standard offices accommodate up to 4 people.' },

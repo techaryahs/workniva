@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import img7 from '../assets/img7.jpeg';
 
 export default function FAQ() {
   const faqs = [
@@ -67,7 +68,7 @@ export default function FAQ() {
 
       {/* Final CTA */}
       <section className="py-32 bg-deep-forest text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200')] bg-cover bg-center opacity-10 mix-blend-overlay" />
+        <div className="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-overlay" style={{ backgroundImage: `url(${img7})` }} />
         <div className="relative z-10 max-w-3xl mx-auto px-4">
           <h2 className="text-5xl md:text-6xl font-display text-warm-ivory mb-6">Need a professional space today?</h2>
           <p className="text-xl text-warm-ivory/80 mb-10">Book the office for exactly the time you need.</p>

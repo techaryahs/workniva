@@ -12,6 +12,7 @@ import RegisterPage from './pages/auth/RegisterPage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import BookingDetailsPage from './pages/BookingDetailsPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Admin protected
 import { AdminLayout } from './layouts/AdminLayout';
@@ -40,6 +41,7 @@ function App() {
             <Route path="/booking/confirmation" element={<BookingConfirmationPage />} />
             <Route path="/my-bookings" element={<MyBookingsPage />} />
             <Route path="/my-bookings/:bookingId" element={<BookingDetailsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
           
           {/* Admin Protected Routes */}

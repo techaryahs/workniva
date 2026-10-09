@@ -3,6 +3,7 @@ import Hero from '../sections/Hero';
 import Showcase from '../sections/Showcase';
 import UseCases from '../sections/UseCases';
 import Facilities from '../sections/Facilities';
+import Gallery from '../sections/Gallery';
 import Pricing from '../sections/Pricing';
 import FAQ from '../sections/FAQ';
 import Footer from '../sections/Footer';
@@ -16,6 +17,7 @@ function App() {
         <Showcase />
         <UseCases />
         <Facilities />
+        <Gallery />
         <Pricing />
         <FAQ />
       </main>

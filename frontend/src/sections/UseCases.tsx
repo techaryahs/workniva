@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import img2 from '../assets/img2.jpeg';
+import img3 from '../assets/img3.jpeg';
 
 export default function UseCases() {
   const cases = [
@@ -73,7 +75,7 @@ export default function UseCases() {
                 transition={{ delay: 0.1 }}
                 className="text-lg text-warm-ivory/80 mb-8 leading-relaxed"
               >
-                Early morning meeting? Late-night project? Interview after office hours? You Work is available when you need it.
+                Early morning pitch? Late-night closing session? High-stakes interview after standard office hours? WorkNiva is ready whenever you need it.
               </motion.p>
               <ul className="space-y-4 mb-8 text-warm-ivory/90">
                 <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-terracotta" /> 24/7 Availability</li>
@@ -82,7 +84,7 @@ export default function UseCases() {
               </ul>
             </div>
             <div className="relative h-[500px] rounded-xl overflow-hidden">
-               <img src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=800" alt="Office at night" className="absolute inset-0 w-full h-full object-cover opacity-90" />
+               <img src={img2} alt="Office at night" className="absolute inset-0 w-full h-full object-cover opacity-90" />
             </div>
           </div>
         </div>
@@ -125,7 +127,7 @@ export default function UseCases() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-16 items-center">
              <div className="order-2 md:order-1 relative h-[600px] rounded-xl overflow-hidden">
-               <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&q=80&w=800" alt="Modern professional desk setup" className="absolute inset-0 w-full h-full object-cover" />
+               <img src={img3} alt="Modern professional desk setup" className="absolute inset-0 w-full h-full object-cover" />
              </div>
              <div className="order-1 md:order-2">
                 <motion.h2 

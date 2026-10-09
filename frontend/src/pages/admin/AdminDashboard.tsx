@@ -34,7 +34,7 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-800">Good morning, Admin</h1>
-        <p className="text-slate-500">Here's what's happening with your You Work space today.</p>
+        <p className="text-slate-500">Here's what's happening across your WorkNiva workspaces today.</p>
       </div>
 
       {/* Summary Cards */}

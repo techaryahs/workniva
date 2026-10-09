@@ -1,22 +1,32 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Users, Clock } from 'lucide-react';
+import img1 from '../assets/img1.jpeg';
+import img2 from '../assets/img2.jpeg';
+import img8 from '../assets/img8.jpeg';
 
 export default function Showcase() {
   const spaces = [
     {
-      name: "Private Meeting Room",
-      capacity: "2–6 people",
-      ideal: "Client meetings, Interviews, Team discussions",
-      price: "₹500 / hour",
-      image: "https://images.unsplash.com/photo-1604328698692-f76ea9498e76?auto=format&fit=crop&q=80&w=800"
+      name: "Private Cabin",
+      capacity: "1–4 persons",
+      ideal: "Focused work, Private calls, Small meetings",
+      price: "₹400 / hour",
+      image: img1
     },
     {
-      name: "Team Workspace",
-      capacity: "4–8 people",
-      ideal: "Collaborative work, Presentations, Training",
-      price: "₹800 / hour",
-      image: "https://images.unsplash.com/photo-1577412647305-991150c7d163?auto=format&fit=crop&q=80&w=800"
+      name: "Conference Room",
+      capacity: "1–5 persons",
+      ideal: "Client meetings, Interviews, Team discussions",
+      price: "₹500 / hour",
+      image: img2
+    },
+    {
+      name: "Bench Seating",
+      capacity: "1 person",
+      ideal: "Freelancers, Remote workers, Quick tasks",
+      price: "₹100 / hour",
+      image: img8
     }
   ];
 
@@ -44,7 +54,7 @@ export default function Showcase() {
           </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid md:grid-cols-3 gap-8">
           {spaces.map((space, index) => (
             <motion.div 
               key={space.name}
@@ -54,7 +64,7 @@ export default function Showcase() {
               transition={{ delay: index * 0.2 }}
               className="group cursor-pointer"
             >
-              <div className="relative h-[400px] rounded-xl overflow-hidden mb-6 bg-soft-beige">
+              <div className="relative h-[300px] rounded-xl overflow-hidden mb-6 bg-soft-beige">
                 <img 
                   src={space.image} 
                   alt={space.name}

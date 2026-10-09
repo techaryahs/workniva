@@ -13,6 +13,7 @@ export interface CustomerDetails {
 }
 
 export interface BookingState {
+  workspace: string | null;
   date: Date | null;
   timeSlot: string | null;
   duration: DurationOption | null;
@@ -22,6 +23,7 @@ export interface BookingState {
 
 export interface Booking {
   id: string;
+  workspace?: string;
   date: string; // ISO or YYYY-MM-DD
   startTime: string; // HH:mm
   endTime: string; // HH:mm

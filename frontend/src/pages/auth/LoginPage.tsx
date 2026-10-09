@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
-import { Building2, AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import BrandLogo from '../../components/ui/BrandLogo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -35,14 +36,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link to="/" className="inline-flex items-center gap-2 mb-6">
-          <Building2 className="w-8 h-8 text-blue-600" />
-          <span className="text-2xl font-bold text-slate-800 tracking-tight">You Work</span>
-        </Link>
-        <h2 className="text-center text-3xl font-extrabold text-slate-900">Sign in to your account</h2>
+        <div className="flex justify-center mb-6">
+          <BrandLogo size="lg" showSubtitle={true} subtitle="Member Portal" />
+        </div>
+        <h2 className="text-center text-3xl font-extrabold text-slate-900 tracking-tight">Sign in to WorkNiva</h2>
         <p className="mt-2 text-center text-sm text-slate-600">
           Or{' '}
-          <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+          <Link to="/register" className="font-semibold text-deep-forest hover:text-terracotta transition-colors">
             create a new account
           </Link>
         </p>

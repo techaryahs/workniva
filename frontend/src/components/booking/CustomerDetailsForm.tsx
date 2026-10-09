@@ -29,6 +29,18 @@ export const CustomerDetailsForm: React.FC<CustomerDetailsFormProps> = ({ initia
     purpose: '',
     specialRequirements: '',
   });
+
+  React.useEffect(() => {
+    if (initialData) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: prev.fullName || initialData.fullName || '',
+        email: prev.email || initialData.email || '',
+        mobile: prev.mobile || initialData.mobile || '',
+        company: prev.company || initialData.company || ''
+      }));
+    }
+  }, [initialData]);
   
   const [errors, setErrors] = useState<Partial<Record<keyof CustomerDetails, string>>>({});
 
@@ -109,7 +121,7 @@ export const CustomerDetailsForm: React.FC<CustomerDetailsFormProps> = ({ initia
           <label className="block text-sm font-medium text-slate-700 mb-1">Purpose of Booking *</label>
           <select 
             className={`w-full p-3 rounded-lg border bg-white ${errors.purpose ? 'border-red-300 ring-1 ring-red-300' : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'} outline-none transition-all`}
-            value={formData.purpose}
+            value={formData.purpose || ''}
             onChange={(e) => handleChange('purpose', e.target.value)}
           >
             <option value="" disabled>Select a purpose...</option>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import BrandLogo from '../components/ui/BrandLogo';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -38,12 +39,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center gap-3">
-            <Link to="/" className="text-2xl font-display text-deep-charcoal tracking-tight">
-              You Work
-            </Link>
-            <span className="hidden lg:block text-xs uppercase tracking-widest text-deep-forest/60 ml-2 font-semibold">
-              Professional Workspace · Navi Mumbai
-            </span>
+            <BrandLogo size="md" showSubtitle={true} subtitle="Navi Mumbai Flagship" />
           </div>
 
           {/* Desktop Navigation */}
@@ -64,6 +60,9 @@ export default function Navbar() {
                     Admin
                   </Link>
                 )}
+                <Link to="/profile" className="text-sm font-medium text-deep-charcoal/80 hover:text-terracotta transition-colors">
+                  My Profile
+                </Link>
                 <Link to="/my-bookings" className="text-sm font-medium text-deep-charcoal/80 hover:text-terracotta transition-colors">
                   My Bookings
                 </Link>
@@ -105,7 +104,10 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -10 }}
             className="md:hidden absolute top-20 left-0 right-0 bg-warm-ivory border-b border-soft-beige shadow-lg"
           >
-            <div className="px-4 pt-2 pb-6 space-y-4 flex flex-col">
+            <div className="px-4 pt-3 pb-6 space-y-4 flex flex-col">
+              <div className="pb-3 border-b border-soft-beige">
+                <BrandLogo size="sm" />
+              </div>
               {navLinks.map((link) => (
                 <a
                   key={link.name}
@@ -124,6 +126,9 @@ export default function Navbar() {
                       Admin
                     </Link>
                   )}
+                  <Link to="/profile" className="block text-base font-medium text-deep-charcoal hover:text-terracotta" onClick={() => setIsMobileMenuOpen(false)}>
+                    My Profile
+                  </Link>
                   <Link to="/my-bookings" className="block text-base font-medium text-deep-charcoal hover:text-terracotta" onClick={() => setIsMobileMenuOpen(false)}>
                     My Bookings
                   </Link>

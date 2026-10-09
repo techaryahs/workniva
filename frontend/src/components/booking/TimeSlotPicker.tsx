@@ -1,25 +1,39 @@
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { isSameDay } from 'date-fns';
 
 interface TimeSlotPickerProps {
   selectedSlot: string | null;
   onChange: (slot: string) => void;
   unavailableSlots?: string[];
+  selectedDate?: Date | null;
 }
 
-export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ selectedSlot, onChange, unavailableSlots = [] }) => {
+export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ selectedSlot, onChange, unavailableSlots = [], selectedDate }) => {
   // Generate slots 08:00 to 23:00
   const slots = Array.from({ length: 16 }).map((_, i) => {
     const hour = i + 8;
     return `${hour.toString().padStart(2, '0')}:00`;
   });
 
+  const now = new Date();
+  const isToday = selectedDate ? isSameDay(selectedDate, now) : false;
+  const currentHour = now.getHours();
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
       <h3 className="font-semibold text-lg mb-4">Select Time</h3>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
         {slots.map(slot => {
-          const isUnavailable = unavailableSlots.includes(slot);
+          let isPast = false;
+          if (isToday) {
+            const slotHour = parseInt(slot.split(':')[0]);
+            if (slotHour <= currentHour) {
+              isPast = true;
+            }
+          }
+          
+          const isUnavailable = unavailableSlots.includes(slot) || isPast;
           const isSelected = selectedSlot === slot;
           return (
             <button

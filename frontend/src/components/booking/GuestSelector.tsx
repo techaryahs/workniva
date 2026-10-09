@@ -3,10 +3,27 @@ import { Users, Plus, Minus } from 'lucide-react';
 interface GuestSelectorProps {
   guests: number;
   onChange: (guests: number) => void;
-  maxCapacity?: number;
+  workspace?: string | null;
 }
 
-export const GuestSelector: React.FC<GuestSelectorProps> = ({ guests, onChange, maxCapacity = 10 }) => {
+export const GuestSelector: React.FC<GuestSelectorProps> = ({ guests, onChange, workspace }) => {
+  let maxCapacity = 10;
+  let helperText = "Maximum capacity is 10 people.";
+
+  if (workspace === 'private-cabin') {
+    maxCapacity = 5;
+    helperText = "Includes 4 guests. Maximum 5 guests.";
+  } else if (workspace === 'conference-room') {
+    maxCapacity = 6;
+    helperText = "Includes 5 guests. Maximum 6 guests.";
+  } else if (workspace === 'bench-seating') {
+    maxCapacity = 8;
+    helperText = "Maximum 8 guests, subject to availability.";
+  } else if (workspace === 'whole-night') {
+    maxCapacity = 29;
+    helperText = "Maximum 29 guests for the entire office.";
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
       <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
@@ -30,7 +47,7 @@ export const GuestSelector: React.FC<GuestSelectorProps> = ({ guests, onChange, 
           <Plus className="w-4 h-4" />
         </button>
       </div>
-      <p className="text-sm text-slate-500 mt-3">Maximum capacity is {maxCapacity} people.</p>
+      <p className="text-sm text-slate-500 mt-3">{helperText}</p>
     </div>
   );
 };

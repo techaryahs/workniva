@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Wifi, Wind, Coffee, Zap, Shield, Car, Check } from 'lucide-react';
+import { Wifi, Wind, Coffee, Zap, Shield, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Facilities() {
@@ -8,8 +8,7 @@ export default function Facilities() {
     { icon: <Wind className="w-6 h-6" />, name: "Air Conditioning" },
     { icon: <Coffee className="w-6 h-6" />, name: "Comfortable Seating" },
     { icon: <Zap className="w-6 h-6" />, name: "Power & Charging" },
-    { icon: <Shield className="w-6 h-6" />, name: "Clean & Secure Space" },
-    { icon: <Car className="w-6 h-6" />, name: "Parking Available" }
+    { icon: <Shield className="w-6 h-6" />, name: "Clean & Secure Space" }
   ];
 
   const steps = [
@@ -100,35 +99,35 @@ export default function Facilities() {
               <div className="space-y-6 text-deep-charcoal/80 mb-8">
                 <p className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-terracotta mt-0.5 shrink-0" />
-                  <span><strong>You Work</strong><br />Sector 15, CBD Belapur, Navi Mumbai, Maharashtra 400614</span>
+                  <span><strong>WorkNiva Prime HQ</strong><br />Gauri Complex, 601, Sector 11, CBD Belapur, Navi Mumbai, Maharashtra 400614</span>
                 </p>
                 <p className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-terracotta mt-0.5 shrink-0" />
                   <span>5 minutes walk from CBD Belapur Railway Station.</span>
                 </p>
-                <p className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-terracotta mt-0.5 shrink-0" />
-                  <span>Ample street parking available nearby.</span>
-                </p>
+
               </div>
               <a 
-                href="#"
+                href="https://maps.google.com/maps?q=Aryahs+World+Infotech+OPC+Pvt+Ltd,+Sector+11,+CBD+Belapur"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center text-deep-forest font-semibold hover:text-terracotta transition-colors"
               >
                 Get Directions &rarr;
               </a>
             </div>
-            <div className="relative h-[400px] rounded-xl overflow-hidden shadow-lg border border-soft-beige">
-              <img 
-                src="https://images.unsplash.com/photo-1572205336214-729606d0426b?auto=format&fit=crop&q=80&w=800" 
-                alt="Map Placeholder" 
-                className="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-multiply bg-soft-beige"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-white/90 backdrop-blur px-6 py-3 rounded-lg shadow-sm text-sm font-medium text-deep-charcoal">
-                  Location Map Loading...
-                </div>
-              </div>
+            <div className="relative h-[400px] rounded-xl overflow-hidden shadow-lg border border-soft-beige bg-slate-100">
+              <iframe 
+                src="https://maps.google.com/maps?q=Aryahs%20World%20Infotech%20OPC%20Pvt%20Ltd,%20Gauri%20Complex,%20Sector%2011,%20CBD%20Belapur&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="WorkNiva Location Map"
+                className="absolute inset-0 w-full h-full"
+              ></iframe>
             </div>
           </div>
         </div>

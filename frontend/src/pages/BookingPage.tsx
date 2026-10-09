@@ -3,14 +3,14 @@ import type { BookingState, CustomerDetails, BookingPurpose } from '../types/boo
 import { BookingCalendar } from '../components/booking/BookingCalendar';
 import { TimeSlotPicker } from '../components/booking/TimeSlotPicker';
 import { DurationSelector } from '../components/booking/DurationSelector';
+import { WorkspaceSelector } from '../components/booking/WorkspaceSelector';
 import { GuestSelector } from '../components/booking/GuestSelector';
 import { BookingSummary } from '../components/booking/BookingSummary';
 import { CustomerDetailsForm } from '../components/booking/CustomerDetailsForm';
 import { ReviewBooking } from '../components/booking/ReviewBooking';
 import Navbar from '../sections/Navbar';
 import Footer from '../sections/Footer';
-import { getPrice } from '../lib/booking';
-import { checkAvailability } from '../services/availabilityService';
+import { getPrice, checkAvailability } from '../lib/booking';
 import { createBooking } from '../services/bookingService';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
@@ -22,10 +22,11 @@ type WizardStep = 'slot' | 'details' | 'review';
 
 const BookingPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, profile } = useAuth();
+  const { isAuthenticated, profile, user } = useAuth();
   
   const [currentStep, setCurrentStep] = useState<WizardStep>('slot');
   const [state, setState] = useState<BookingState>({
+    workspace: null,
     date: null,
     timeSlot: null,
     duration: null,
@@ -51,16 +52,16 @@ const BookingPage = () => {
     setAvailabilityMessage(undefined);
     
     try {
-      const result = await checkAvailability(format(state.date, 'yyyy-MM-dd'), state.timeSlot);
+      const result = await checkAvailability(state.date, state.timeSlot, state.duration, state.guests, state.workspace!);
       if (result.available) {
         setAvailabilityStatus('available');
       } else {
         setAvailabilityStatus('unavailable');
         setAvailabilityMessage(result.message);
       }
-    } catch {
+    } catch (err: any) {
       setAvailabilityStatus('unavailable');
-      setAvailabilityMessage('An error occurred while checking availability.');
+      setAvailabilityMessage(err?.message || 'An error occurred while checking availability.');
     } finally {
       setIsChecking(false);
     }
@@ -76,7 +77,7 @@ const BookingPage = () => {
   };
 
   const handleConfirm = async () => {
-    if (!state.date || !state.timeSlot || !state.duration || !state.customer) return;
+    if (!state.workspace || !state.date || !state.timeSlot || !state.duration || !state.customer) return;
     
     if (!isAuthenticated) {
       alert("Please log in to confirm your booking.");
@@ -89,6 +90,7 @@ const BookingPage = () => {
       // 1. Create booking (backend sets status = pending_payment)
       const newBooking = await createBooking({
         date: format(state.date, 'yyyy-MM-dd'),
+        workspace: state.workspace,
         startTime: state.timeSlot,
         endTime: "00:00:00", // backend calculates this
         duration: state.duration,
@@ -109,8 +111,8 @@ const BookingPage = () => {
         key: order.key_id,
         amount: order.amount,
         currency: order.currency,
-        name: "You Work",
-        description: "Booking Payment",
+        name: "WorkNiva",
+        description: "WorkNiva Workspace Reservation",
         order_id: order.order_id,
         handler: async function (response: any /* eslint-disable-line */ /* eslint-disable-line */ ) {
           try {
@@ -166,10 +168,34 @@ const BookingPage = () => {
   if (currentStep === 'review') currentNum = 4;
 
   const slotSteps = [
-    { title: 'Select Date', component: <BookingCalendar selectedDate={state.date} onChange={(date) => updateState({ date })} /> },
-    { title: 'Select Time', component: <TimeSlotPicker selectedSlot={state.timeSlot} onChange={(timeSlot) => updateState({ timeSlot })} />, show: !!state.date },
+    { title: 'Select Workspace', component: <WorkspaceSelector selected={state.workspace} onChange={(workspace) => {
+      const updates: any = { workspace };
+      // Clamp guest count
+      let maxGuests = 10;
+      if (workspace === 'private-cabin') maxGuests = 5;
+      if (workspace === 'conference-room') maxGuests = 6;
+      if (workspace === 'bench-seating') maxGuests = 8;
+      if (workspace === 'whole-night') maxGuests = 29;
+      if (state.guests > maxGuests) {
+        updates.guests = maxGuests;
+      }
+      updateState(updates);
+    }} /> },
+    { title: 'Select Date', component: <BookingCalendar selectedDate={state.date} onChange={(date) => {
+      const updates: any = { date };
+      if (state.timeSlot) {
+        const now = new Date();
+        const isToday = format(date, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd');
+        const slotHour = parseInt(state.timeSlot.split(':')[0]);
+        if (isToday && slotHour <= now.getHours()) {
+          updates.timeSlot = null; // Clear invalid time slot
+        }
+      }
+      updateState(updates);
+    }} />, show: !!state.workspace },
+    { title: 'Select Time', component: <TimeSlotPicker selectedSlot={state.timeSlot} onChange={(timeSlot) => updateState({ timeSlot })} selectedDate={state.date} />, show: !!state.date },
     { title: 'Duration', component: <DurationSelector selectedDuration={state.duration} onChange={(duration) => updateState({ duration })} />, show: !!state.timeSlot },
-    { title: 'Guests', component: <GuestSelector guests={state.guests} onChange={(guests) => updateState({ guests })} />, show: !!state.duration },
+    { title: 'Guests', component: <GuestSelector guests={state.guests} onChange={(guests) => updateState({ guests })} workspace={state.workspace} />, show: !!state.duration },
   ];
 
   return (
@@ -228,8 +254,8 @@ const BookingPage = () => {
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                   <CustomerDetailsForm 
                     initialData={state.customer || {
-                      fullName: profile?.full_name || '',
-                      email: profile?.email || '',
+                      fullName: profile?.full_name || user?.user_metadata?.full_name || '',
+                      email: profile?.email || user?.email || '',
                       mobile: profile?.phone || '',
                       company: profile?.company || ''
                     } as any /* eslint-disable-line @typescript-eslint/no-explicit-any */}
@@ -276,7 +302,7 @@ const BookingPage = () => {
           <div className="flex justify-between items-center mb-3">
             <div>
               <p className="text-xs text-slate-500 font-medium">Total</p>
-              <p className="text-lg font-bold">₹{state.duration ? getPrice(state.duration) : 0}</p>
+              <p className="text-lg font-bold">₹{state.duration ? getPrice(state.workspace, state.duration, state.guests) : 0}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-slate-500 font-medium">Status</p>
@@ -287,7 +313,7 @@ const BookingPage = () => {
           </div>
           <button 
             className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg disabled:opacity-50 transition-colors hover:bg-blue-700 flex justify-center items-center gap-2"
-            disabled={!state.date || !state.timeSlot || !state.duration || isChecking}
+            disabled={!state.workspace || !state.date || !state.timeSlot || !state.duration || isChecking}
             onClick={availabilityStatus === 'available' ? handleContinueToDetails : handleCheck}
           >
             {isChecking ? 'Checking...' : availabilityStatus === 'available' ? 'Continue Booking' : 'Check Availability'}
