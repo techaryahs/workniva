@@ -34,3 +34,5 @@ export const faqs: FaqItem[] = [
   { question: 'Are there hidden fees?', answer: 'No, the price you see is the price you pay. All amenities are included.' },
   { question: 'Can I bring guests?', answer: 'Yes, our standard offices accommodate up to 4 people.' },
 ];
+
+export * from './contact';

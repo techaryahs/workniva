@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { Wifi, Wind, Coffee, Zap, Shield, Check } from 'lucide-react';
+import { Wifi, Wind, Coffee, Zap, Shield, Check, Phone, Smartphone, PhoneCall, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { businessContact } from '../data';
 
 export default function Facilities() {
   const amenities = [
@@ -99,22 +100,79 @@ export default function Facilities() {
               <div className="space-y-6 text-deep-charcoal/80 mb-8">
                 <p className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-terracotta mt-0.5 shrink-0" />
-                  <span><strong>WorkNiva Prime HQ</strong><br />Gauri Complex, 601, Sector 11, CBD Belapur, Navi Mumbai, Maharashtra 400614</span>
+                  <span><strong>{businessContact.name}</strong><br />{businessContact.address.full}</span>
                 </p>
                 <p className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-terracotta mt-0.5 shrink-0" />
-                  <span>5 minutes walk from CBD Belapur Railway Station.</span>
+                  <span>{businessContact.transit}</span>
                 </p>
-
               </div>
-              <a 
-                href="https://maps.google.com/maps?q=Aryahs+World+Infotech+OPC+Pvt+Ltd,+Sector+11,+CBD+Belapur"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-deep-forest font-semibold hover:text-terracotta transition-colors"
-              >
-                Get Directions &rarr;
-              </a>
+
+              {/* Official Contact Numbers */}
+              <div className="pt-6 border-t border-soft-beige/80 mb-8">
+                <h3 className="text-xs font-bold text-deep-forest uppercase tracking-wider mb-4">Official Contact Numbers</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  <a
+                    href={businessContact.phoneNumbers.mobile.href}
+                    aria-label={businessContact.phoneNumbers.mobile.ariaLabel}
+                    className="p-3.5 rounded-xl bg-white border border-soft-beige hover:border-deep-forest hover:shadow-xs transition-all flex items-center gap-3 group"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-soft-beige/70 text-deep-forest flex items-center justify-center shrink-0 group-hover:bg-deep-forest group-hover:text-white transition-colors">
+                      <Phone className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-deep-charcoal/60 block font-medium">Call us (Mobile)</span>
+                      <span className="font-mono font-semibold text-deep-charcoal group-hover:text-terracotta transition-colors">{businessContact.phoneNumbers.mobile.display}</span>
+                    </div>
+                  </a>
+
+                  <a
+                    href={businessContact.phoneNumbers.additionalMobile.href}
+                    aria-label={businessContact.phoneNumbers.additionalMobile.ariaLabel}
+                    className="p-3.5 rounded-xl bg-white border border-soft-beige hover:border-deep-forest hover:shadow-xs transition-all flex items-center gap-3 group"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-soft-beige/70 text-deep-forest flex items-center justify-center shrink-0 group-hover:bg-deep-forest group-hover:text-white transition-colors">
+                      <Smartphone className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-deep-charcoal/60 block font-medium">Additional contact</span>
+                      <span className="font-mono font-semibold text-deep-charcoal group-hover:text-terracotta transition-colors">{businessContact.phoneNumbers.additionalMobile.display}</span>
+                    </div>
+                  </a>
+
+                  <a
+                    href={businessContact.phoneNumbers.landline.href}
+                    aria-label={businessContact.phoneNumbers.landline.ariaLabel}
+                    className="p-3.5 rounded-xl bg-white border border-soft-beige hover:border-deep-forest hover:shadow-xs transition-all flex items-center gap-3 group sm:col-span-2"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-soft-beige/70 text-deep-forest flex items-center justify-center shrink-0 group-hover:bg-deep-forest group-hover:text-white transition-colors">
+                      <PhoneCall className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-deep-charcoal/60 block font-medium">Landline</span>
+                      <span className="font-mono font-semibold text-deep-charcoal group-hover:text-terracotta transition-colors">{businessContact.phoneNumbers.landline.display}</span>
+                    </div>
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-6">
+                <a 
+                  href={businessContact.directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-deep-forest font-semibold hover:text-terracotta transition-colors"
+                >
+                  Get Directions &rarr;
+                </a>
+                <a 
+                  href={businessContact.emailHref}
+                  className="inline-flex items-center gap-1.5 text-sm text-deep-charcoal/70 hover:text-terracotta transition-colors"
+                >
+                  <Mail className="w-4 h-4 text-terracotta" />
+                  <span>{businessContact.email}</span>
+                </a>
+              </div>
             </div>
             <div className="relative h-[400px] rounded-xl overflow-hidden shadow-lg border border-soft-beige bg-slate-100">
               <iframe 

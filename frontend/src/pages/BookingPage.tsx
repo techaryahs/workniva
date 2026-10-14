@@ -11,7 +11,7 @@ import { ReviewBooking } from '../components/booking/ReviewBooking';
 import Navbar from '../sections/Navbar';
 import Footer from '../sections/Footer';
 import { getPrice, checkAvailability } from '../lib/booking';
-import { createBooking } from '../services/bookingService';
+import { createBooking, mapSupabaseBooking } from '../services/bookingService';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -102,28 +102,64 @@ const BookingPage = () => {
         status: 'Pending_payment' as any /* eslint-disable-line */
       });
 
-      // 2. Create Razorpay order
-      const { createPaymentOrder, verifyPayment } = await import('../services/paymentApi');
+      // Check if testing mode / payment disabled by backend
+      const isPaymentBypassed = 
+        newBooking.paymentRequired === false || 
+        newBooking.testingMode === true || 
+        newBooking.status === 'Confirmed' ||
+        (newBooking as any).payment_required === false;
+
+      if (isPaymentBypassed) {
+        setIsConfirming(false);
+        navigate('/booking/confirmation', { 
+          state: { 
+            booking: newBooking,
+            isTestBooking: true,
+            testingMode: true
+          } 
+        });
+        return;
+      }
+
+      // 2. Real Payment Mode: Ensure Razorpay SDK is loaded
+      const { createPaymentOrder, verifyPayment, loadRazorpayScript } = await import('../services/paymentApi');
+      const isScriptLoaded = await loadRazorpayScript();
+      if (!isScriptLoaded || !(window as any).Razorpay) {
+        throw new Error('Razorpay payment gateway failed to load. Please check your internet connection.');
+      }
+
+      // 3. Create Razorpay order on backend
       const order = await createPaymentOrder(newBooking.id);
 
-      // 3. Open Razorpay Checkout
+      // 4. Launch Razorpay Checkout
       const options = {
         key: order.key_id,
         amount: order.amount,
         currency: order.currency,
         name: "WorkNiva",
-        description: "WorkNiva Workspace Reservation",
+        description: `Workspace Reservation: ${newBooking.bookingCode || 'WorkNiva'}`,
+        image: "/logo.png",
         order_id: order.order_id,
-        handler: async function (response: any /* eslint-disable-line */ /* eslint-disable-line */ ) {
+        handler: async function (response: any) {
           try {
             const confirmedBooking = await verifyPayment({
               ...response,
               booking_id: newBooking.id
             });
-            navigate('/booking/confirmation', { state: { booking: confirmedBooking } });
-          } catch (verifyErr: any /* eslint-disable-line */) {
-            alert("Payment verification failed. Please try again or contact support.");
+            const mapped = mapSupabaseBooking(confirmedBooking);
+            navigate('/booking/confirmation', { 
+              state: { 
+                booking: mapped,
+                isPaid: true,
+                testingMode: false
+              } 
+            });
+          } catch (verifyErr: any) {
+            console.error('[PAYMENT VERIFY ERROR]:', verifyErr);
+            alert("Payment verification delayed. Your booking will be confirmed momentarily. Please check My Bookings.");
             navigate('/my-bookings');
+          } finally {
+            setIsConfirming(false);
           }
         },
         prefill: {
@@ -132,25 +168,24 @@ const BookingPage = () => {
           contact: state.customer.mobile
         },
         theme: {
-          color: "#2563EB"
+          color: "#1B4D3E"
         },
         modal: {
           ondismiss: function() {
-            alert("Payment cancelled.");
-            navigate('/my-bookings');
+            setIsConfirming(false);
           }
         }
       };
 
-      const rzp = new (window as any /* eslint-disable-line */).Razorpay(options);
-      rzp.on('payment.failed', function (response: any /* eslint-disable-line */ /* eslint-disable-line */ ) {
-        alert("Payment failed: " + response.error.description);
-        navigate('/my-bookings');
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        setIsConfirming(false);
+        alert("Payment was not completed: " + (response.error?.description || "Transaction failed. Please try again."));
       });
       rzp.open();
 
-    } catch (err: any /* eslint-disable-line */ /* eslint-disable-line */ ) {
-      alert(err.message);
+    } catch (err: any) {
+      alert(err.message || 'Payment initiation failed. Please try again.');
       setIsConfirming(false);
     }
   };

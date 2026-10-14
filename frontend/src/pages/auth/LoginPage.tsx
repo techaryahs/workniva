@@ -29,7 +29,10 @@ export default function LoginPage() {
       setError(authError.message);
       setLoading(false);
     } else {
-      navigate(from, { replace: true });
+      const destination = email.toLowerCase() === 'admin.workniva@gmail.com' && from === '/my-bookings'
+        ? '/admin/bookings'
+        : from;
+      navigate(destination, { replace: true });
     }
   };
 

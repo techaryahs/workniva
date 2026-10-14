@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui/Button';
+import { businessContact } from '../../data';
 
 const AdminSettings = () => {
   return (
@@ -15,15 +16,23 @@ const AdminSettings = () => {
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Business Name</label>
-            <input type="text" defaultValue="WorkNiva Prime" className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
+            <input type="text" defaultValue={businessContact.name} className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
-            <input type="email" defaultValue="info@aryahsworld.com" className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
+            <input type="email" defaultValue={businessContact.email} className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
-            <input type="tel" defaultValue="+91 96199 01999" className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500" />
+            <label className="block text-sm font-medium text-slate-700 mb-1">Primary Mobile</label>
+            <input type="tel" defaultValue={businessContact.phoneNumbers.mobile.display} className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500 font-mono" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Additional Mobile</label>
+            <input type="tel" defaultValue={businessContact.phoneNumbers.additionalMobile.display} className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500 font-mono" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-1">Landline</label>
+            <input type="tel" defaultValue={businessContact.phoneNumbers.landline.display} className="w-full p-2 border border-slate-200 rounded-lg outline-none focus:border-blue-500 font-mono" />
           </div>
         </div>
       </div>

@@ -23,7 +23,10 @@ export interface BookingState {
 
 export interface Booking {
   id: string;
+  bookingCode?: string;
   workspace?: string;
+  resourceType?: string;
+  resourceId?: string;
   date: string; // ISO or YYYY-MM-DD
   startTime: string; // HH:mm
   endTime: string; // HH:mm
@@ -35,6 +38,12 @@ export interface Booking {
   amount: number;
   status: BookingStatus;
   createdAt: string; // ISO string
+  paymentMode?: string;
+  paymentRequired?: boolean;
+  testingMode?: boolean;
+  paymentStatus?: 'unpaid' | 'paid' | 'pending' | 'testing_unpaid' | 'failed';
+  payments?: any[];
+  latestPayment?: any;
 }
 
 export interface BlockedSlot {

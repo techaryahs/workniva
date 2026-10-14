@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BrandLogo from '../components/ui/BrandLogo';
+import { businessContact } from '../data';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -148,6 +149,40 @@ export default function Navbar() {
               >
                 Book a Space &rarr;
               </Link>
+
+              {/* Direct Concierge Contact in Mobile Navigation */}
+              <div className="pt-4 border-t border-soft-beige">
+                <p className="font-semibold text-deep-forest uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-terracotta" />
+                  <span>Direct Concierge</span>
+                </p>
+                <div className="space-y-1.5 text-xs">
+                  <a
+                    href={businessContact.phoneNumbers.mobile.href}
+                    aria-label={businessContact.phoneNumbers.mobile.ariaLabel}
+                    className="flex justify-between items-center py-1 text-deep-charcoal hover:text-terracotta transition-colors"
+                  >
+                    <span className="text-deep-charcoal/60">Call us (Mobile):</span>
+                    <span className="font-mono font-semibold">{businessContact.phoneNumbers.mobile.display}</span>
+                  </a>
+                  <a
+                    href={businessContact.phoneNumbers.additionalMobile.href}
+                    aria-label={businessContact.phoneNumbers.additionalMobile.ariaLabel}
+                    className="flex justify-between items-center py-1 text-deep-charcoal hover:text-terracotta transition-colors"
+                  >
+                    <span className="text-deep-charcoal/60">Additional contact:</span>
+                    <span className="font-mono font-semibold">{businessContact.phoneNumbers.additionalMobile.display}</span>
+                  </a>
+                  <a
+                    href={businessContact.phoneNumbers.landline.href}
+                    aria-label={businessContact.phoneNumbers.landline.ariaLabel}
+                    className="flex justify-between items-center py-1 text-deep-charcoal hover:text-terracotta transition-colors"
+                  >
+                    <span className="text-deep-charcoal/60">Landline:</span>
+                    <span className="font-mono font-semibold">{businessContact.phoneNumbers.landline.display}</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

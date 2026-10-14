@@ -7,6 +7,11 @@ export const getAdminBookings = async (): Promise<Booking[]> => {
   return data.map(mapSupabaseBooking);
 };
 
+export const getAdminBookingById = async (id: string): Promise<Booking> => {
+  const data = await fetchApi(`/admin/bookings/${id}`);
+  return mapSupabaseBooking(data);
+};
+
 export const updateBookingStatus = async (id: string, status: Booking['status']): Promise<Booking> => {
   const data = await fetchApi(`/admin/bookings/${id}/status`, {
     method: 'PATCH',

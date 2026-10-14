@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Booking } from '../types/booking';
-import { getBookingById, cancelMyBooking } from '../services/bookingService';
+import { getBookingById, cancelMyBooking, mapSupabaseBooking } from '../services/bookingService';
 import Navbar from '../sections/Navbar';
 import Footer from '../sections/Footer';
 import { Button } from '../components/ui/Button';
@@ -10,6 +10,7 @@ import { format, parseISO } from 'date-fns';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import logoImg from '../assets/logo.png';
+import { businessContact } from '../data';
 
 const BookingDetailsPage = () => {
   const { bookingId } = useParams();
@@ -31,6 +32,69 @@ const BookingDetailsPage = () => {
     };
     fetchBooking();
   }, [bookingId]);
+
+  const [isPaying, setIsPaying] = useState(false);
+
+  const handlePayNow = async () => {
+    if (!booking) return;
+    setIsPaying(true);
+    try {
+      const { createPaymentOrder, verifyPayment, loadRazorpayScript } = await import('../services/paymentApi');
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded || !(window as any).Razorpay) {
+        throw new Error('Razorpay SDK failed to load. Please check your network connection.');
+      }
+
+      const order = await createPaymentOrder(booking.id);
+
+      const options = {
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        name: "WorkNiva",
+        description: `Workspace Reservation: ${booking.bookingCode || 'WorkNiva'}`,
+        image: "/logo.png",
+        order_id: order.order_id,
+        handler: async function (response: any) {
+          try {
+            const confirmed = await verifyPayment({
+              ...response,
+              booking_id: booking.id
+            });
+            setBooking(mapSupabaseBooking(confirmed));
+            alert("Payment successful! Your booking is confirmed.");
+          } catch (err: any) {
+            alert(err.message || "Payment verification failed.");
+          } finally {
+            setIsPaying(false);
+          }
+        },
+        prefill: {
+          name: booking.customer.fullName,
+          email: booking.customer.email,
+          contact: booking.customer.mobile
+        },
+        theme: {
+          color: "#1B4D3E"
+        },
+        modal: {
+          ondismiss: function() {
+            setIsPaying(false);
+          }
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        setIsPaying(false);
+        alert("Payment was not completed: " + (response.error?.description || "Transaction declined"));
+      });
+      rzp.open();
+    } catch (err: any) {
+      alert(err.message || "Failed to initiate payment");
+      setIsPaying(false);
+    }
+  };
 
   const handleCancel = async () => {
     if (!booking) return;
@@ -92,14 +156,21 @@ const BookingDetailsPage = () => {
                 <p className="text-sm font-semibold text-slate-400 mb-1">Booking ID: {booking.id}</p>
                 <h1 className="text-2xl md:text-3xl font-bold">{booking.purpose}</h1>
               </div>
-              <span className={clsx(
-                "inline-block px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider self-start md:self-auto",
-                booking.status === 'Confirmed' && "bg-green-100 text-green-700",
-                booking.status === 'Cancelled' && "bg-red-100 text-red-700",
-                booking.status === 'Completed' && "bg-slate-100 text-slate-700"
-              )}>
-                {booking.status}
-              </span>
+              <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+                <span className={clsx(
+                  "inline-block px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider",
+                  booking.status === 'Confirmed' && "bg-green-100 text-green-700",
+                  booking.status === 'Cancelled' && "bg-red-100 text-red-700",
+                  booking.status === 'Completed' && "bg-slate-100 text-slate-700"
+                )}>
+                  {booking.status}
+                </span>
+                {(booking.testingMode || booking.specialRequirements?.includes('Testing Mode')) && (
+                  <span className="inline-block px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                    Testing Mode — No Payment
+                  </span>
+                )}
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
@@ -129,8 +200,8 @@ const BookingDetailsPage = () => {
                     <div className="flex gap-4 items-center">
                       <img src={logoImg} alt="WorkNiva" className="w-10 h-10 rounded-xl shadow-xs object-contain shrink-0" />
                       <div>
-                        <p className="font-semibold text-slate-800">WorkNiva Prime HQ</p>
-                        <p className="text-sm text-slate-500">Sector 15, CBD Belapur, Navi Mumbai</p>
+                        <p className="font-semibold text-slate-800">{businessContact.name}</p>
+                        <p className="text-sm text-slate-500">{businessContact.address.building}, {businessContact.address.street}, {businessContact.address.locality}, {businessContact.address.city}</p>
                       </div>
                     </div>
                   </div>
@@ -176,15 +247,43 @@ const BookingDetailsPage = () => {
                     <span className="font-semibold">{booking.guests}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-600">Amount Paid</span>
-                    <span className="font-semibold text-lg">₹{booking.amount}</span>
+                    <span className="text-slate-600">
+                      {(booking.testingMode || booking.specialRequirements?.includes('Testing Mode')) ? 'Booking Amount' : 'Amount Paid'}
+                    </span>
+                    <div className="text-right">
+                      <span className="font-semibold text-lg block">₹{booking.amount}</span>
+                      {(booking.testingMode || booking.specialRequirements?.includes('Testing Mode')) && (
+                        <span className="text-[11px] font-semibold text-amber-700 block">
+                          Unpaid (Testing Mode)
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between items-center text-sm text-slate-400 pt-4 border-t border-slate-200">
                     <span>Booked on</span>
                     <span>{format(parseISO(booking.createdAt), 'dd MMM yyyy, HH:mm')}</span>
                   </div>
                 </div>
-                
+
+                {booking.status === 'Pending_payment' && (
+                  <div className="mt-auto space-y-2">
+                    <Button 
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                      disabled={isPaying}
+                      onClick={handlePayNow}
+                    >
+                      {isPaying ? 'Opening Payment...' : `Complete Payment (₹${booking.amount})`}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                      onClick={() => setShowCancelModal(true)}
+                    >
+                      Cancel Reservation
+                    </Button>
+                  </div>
+                )}
+
                 {booking.status === 'Confirmed' && (
                   <div className="mt-auto">
                     <Button 

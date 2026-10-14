@@ -39,7 +39,8 @@ export default function RegisterPage() {
       setError(authError.message);
       setLoading(false);
     } else {
-      navigate('/my-bookings');
+      const destination = email.toLowerCase() === 'admin.workniva@gmail.com' ? '/admin/bookings' : '/my-bookings';
+      navigate(destination);
     }
   };
 

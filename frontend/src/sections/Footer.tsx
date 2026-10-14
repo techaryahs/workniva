@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import BrandLogo from '../components/ui/BrandLogo';
 import { ShieldCheck, Award, Zap } from 'lucide-react';
+import { businessContact } from '../data';
 
 export default function Footer() {
   return (
@@ -65,16 +66,51 @@ export default function Footer() {
           {/* Enterprise Concierge */}
           <div>
             <h4 className="font-semibold text-white mb-5 uppercase tracking-wider text-xs">Concierge &amp; HQ</h4>
-            <ul className="space-y-3 text-sm text-warm-ivory/70">
-              <li className="font-mono text-warm-ivory/90 font-medium">+91 96199 01999</li>
-              <li><a href="mailto:info@aryahsworld.com" className="hover:text-[#E27D60] transition-colors">info@aryahsworld.com</a></li>
-              <li className="mt-4 pt-4 border-t border-white/10 leading-relaxed text-xs">
-                <strong>WorkNiva Prime HQ</strong><br />
-                Gauri Complex, 601, Sector 11<br />
-                CBD Belapur, Navi Mumbai<br />
-                MH 400614
-              </li>
-            </ul>
+            <div className="space-y-4 text-sm text-warm-ivory/70">
+              <ul className="space-y-3">
+                <li>
+                  <span className="text-[11px] font-sans uppercase tracking-wider text-warm-ivory/50 block">Call us:</span>
+                  <a 
+                    href={businessContact.phoneNumbers.mobile.href}
+                    aria-label={businessContact.phoneNumbers.mobile.ariaLabel}
+                    className="font-mono text-warm-ivory/90 hover:text-[#E27D60] transition-colors font-medium inline-block"
+                  >
+                    {businessContact.phoneNumbers.mobile.display}
+                  </a>
+                </li>
+                <li>
+                  <span className="text-[11px] font-sans uppercase tracking-wider text-warm-ivory/50 block">Additional contact:</span>
+                  <a 
+                    href={businessContact.phoneNumbers.additionalMobile.href}
+                    aria-label={businessContact.phoneNumbers.additionalMobile.ariaLabel}
+                    className="font-mono text-warm-ivory/90 hover:text-[#E27D60] transition-colors font-medium inline-block"
+                  >
+                    {businessContact.phoneNumbers.additionalMobile.display}
+                  </a>
+                </li>
+                <li>
+                  <span className="text-[11px] font-sans uppercase tracking-wider text-warm-ivory/50 block">Landline:</span>
+                  <a 
+                    href={businessContact.phoneNumbers.landline.href}
+                    aria-label={businessContact.phoneNumbers.landline.ariaLabel}
+                    className="font-mono text-warm-ivory/90 hover:text-[#E27D60] transition-colors font-medium inline-block"
+                  >
+                    {businessContact.phoneNumbers.landline.display}
+                  </a>
+                </li>
+                <li className="pt-1">
+                  <a href={businessContact.emailHref} className="hover:text-[#E27D60] transition-colors text-xs">
+                    {businessContact.email}
+                  </a>
+                </li>
+              </ul>
+              <div className="pt-3 border-t border-white/10 leading-relaxed text-xs">
+                <strong className="text-warm-ivory/90">{businessContact.name}</strong><br />
+                {businessContact.address.building}, {businessContact.address.street}<br />
+                {businessContact.address.locality}, {businessContact.address.city}<br />
+                MH {businessContact.address.pincode}
+              </div>
+            </div>
           </div>
           
         </div>

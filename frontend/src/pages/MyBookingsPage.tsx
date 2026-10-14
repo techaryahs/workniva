@@ -31,7 +31,7 @@ const MyBookingsPage = () => {
   const filteredBookings = bookings.filter(b => {
     if (activeTab === 'Cancelled') return b.status === 'Cancelled';
     if (activeTab === 'Completed') return b.status === 'Completed';
-    return b.status === 'Confirmed';
+    return b.status === 'Confirmed' || b.status === 'Pending_payment';
   });
 
   return (
@@ -84,14 +84,22 @@ const MyBookingsPage = () => {
                       <span className="text-xs font-semibold text-slate-400 block mb-1">{booking.id}</span>
                       <h3 className="font-bold text-lg">{booking.purpose}</h3>
                     </div>
-                    <span className={clsx(
-                      "px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider",
-                      booking.status === 'Confirmed' && "bg-green-100 text-green-700",
-                      booking.status === 'Cancelled' && "bg-red-100 text-red-700",
-                      booking.status === 'Completed' && "bg-slate-100 text-slate-700"
-                    )}>
-                      {booking.status}
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={clsx(
+                        "px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider",
+                        booking.status === 'Confirmed' && "bg-green-100 text-green-700",
+                        booking.status === 'Pending_payment' && "bg-orange-100 text-orange-700",
+                        booking.status === 'Cancelled' && "bg-red-100 text-red-700",
+                        booking.status === 'Completed' && "bg-slate-100 text-slate-700"
+                      )}>
+                        {booking.status === 'Pending_payment' ? 'Payment Pending' : booking.status}
+                      </span>
+                      {(booking.testingMode || booking.specialRequirements?.includes('Testing Mode')) && (
+                        <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          Testing Mode
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="space-y-3 mb-6 flex-grow">
@@ -110,7 +118,12 @@ const MyBookingsPage = () => {
                   </div>
                   
                   <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
-                    <span className="font-bold text-lg">₹{booking.amount}</span>
+                    <div>
+                      <span className="font-bold text-lg block">₹{booking.amount}</span>
+                      {(booking.testingMode || booking.specialRequirements?.includes('Testing Mode')) && (
+                        <span className="text-[10px] text-amber-700 font-medium block">Unpaid (Testing)</span>
+                      )}
+                    </div>
                     <Button variant="outline" size="sm" onClick={() => navigate(`/my-bookings/${booking.id}`)}>
                       View Booking
                     </Button>
