@@ -13,8 +13,9 @@ const bookingRoutes_1 = __importDefault(require("./routes/bookingRoutes"));
 const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 const app = (0, express_1.default)();
+// Security headers
 app.use((0, helmet_1.default)());
-// Configure CORS to properly connect a separate frontend and backend
+// Production CORS allowlist
 const corsOptions = {
     origin: function (origin, callback) {
         const allowedOrigins = [
@@ -22,9 +23,14 @@ const corsOptions = {
             'http://localhost:5173',
             'http://localhost:3000',
             'http://127.0.0.1:5173',
+            'http://localhost:5080',
             'http://localhost'
         ];
-        // Allow requests with no origin (like mobile apps, curl) or if origin is in the allowed list
+        if (process.env.ADDITIONAL_ALLOWED_ORIGINS) {
+            const extra = process.env.ADDITIONAL_ALLOWED_ORIGINS.split(',').map(s => s.trim());
+            allowedOrigins.push(...extra);
+        }
+        // Allow non-browser requests (e.g. server-to-server webhooks, curl, health checks) or verified origins
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         }
@@ -33,29 +39,72 @@ const corsOptions = {
         }
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature', 'x-requested-with']
 };
 app.use((0, cors_1.default)(corsOptions));
-app.use(express_1.default.json({ limit: '10kb' })); // Request size limit
-// Rate limiting
-const limiter = (0, express_rate_limit_1.default)({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: { success: false, message: 'Too many requests, please try again later.' }
+// Preserve exact raw body buffer for Razorpay cryptographic webhook verification
+app.use(express_1.default.json({
+    limit: '100kb',
+    verify: (req, _res, buf) => {
+        req.rawBody = buf;
+    }
+}));
+// Rate Limiters
+const generalLimiter = (0, express_rate_limit_1.default)({
+    windowMs: 15 * 60 * 1000,
+    max: 300,
+    message: { success: false, message: 'Too many requests, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
 });
-app.use('/api', limiter);
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ success: true, message: 'You Work API is running' });
+app.use('/api', generalLimiter);
+const authLimiter = (0, express_rate_limit_1.default)({
+    windowMs: 15 * 60 * 1000,
+    max: 40,
+    message: { success: false, message: 'Too many authentication attempts, please try again later.' }
 });
-// Routes
+app.use('/api/auth', authLimiter);
+const paymentLimiter = (0, express_rate_limit_1.default)({
+    windowMs: 15 * 60 * 1000,
+    max: 60,
+    message: { success: false, message: 'Payment rate limit reached. Please wait a moment.' }
+});
+app.use('/api/payments/create-order', paymentLimiter);
+app.use('/api/payments/verify', paymentLimiter);
+// Production Health Endpoint
+app.get('/api/health', (_req, res) => {
+    res.json({
+        success: true,
+        status: 'healthy',
+        service: 'WorkNiva API',
+        version: '1.0.0',
+        environment: process.env.NODE_ENV || 'production',
+        paymentMode: env_1.config.paymentMode,
+        timestamp: new Date().toISOString(),
+        uptimeSeconds: Math.floor(process.uptime())
+    });
+});
+// Application Routes
 app.use('/api/auth', authRoutes_1.default);
 app.use('/api/bookings', bookingRoutes_1.default);
 app.use('/api/admin', adminRoutes_1.default);
 app.use('/api/payments', paymentRoutes_1.default);
-// Error middleware placeholder
-app.use((err, req, res, next) => {
-    if (process.env.NODE_ENV !== 'production')
-        console.error(err.stack);
-    res.status(500).json({ success: false, message: 'Something broke!' });
+// Safe Production Error Middleware
+app.use((err, _req, res, _next) => {
+    if (process.env.NODE_ENV !== 'production') {
+        console.error('[UNCAUGHT ERROR]:', err);
+    }
+    else {
+        console.error('[SERVER ERROR]:', err.message || 'Unknown error');
+    }
+    const statusCode = err.status || 500;
+    const clientMessage = process.env.NODE_ENV === 'production' && statusCode === 500
+        ? 'An internal server error occurred'
+        : (err.message || 'Something broke!');
+    res.status(statusCode).json({
+        success: false,
+        message: clientMessage
+    });
 });
 exports.default = app;

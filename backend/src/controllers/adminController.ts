@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware';
 import {
   getAdminBookingsService,
+  getAdminBookingByIdService,
   updateBookingStatusService,
   getPricingService,
   updatePricingService,
@@ -17,6 +18,16 @@ export const getBookings = async (req: AuthRequest, res: Response) => {
     res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getBookingById = async (req: AuthRequest, res: Response) => {
+  try {
+    const data = await getAdminBookingByIdService(req.params.id as string);
+    res.json({ success: true, data });
+  } catch (error: any) {
+    const status = error.message === 'Booking not found' ? 404 : 500;
+    res.status(status).json({ success: false, message: error.message });
   }
 };
 

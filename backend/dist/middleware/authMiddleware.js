@@ -34,11 +34,12 @@ const requireAuth = async (req, res, next) => {
         if (profileError || !profile) {
             // Safe recovery mechanism for users missing profiles
             console.warn(`Profile missing for user ${user.id}. Attempting recovery.`);
+            const isAdminEmail = user.email?.toLowerCase() === 'admin.workniva@gmail.com';
             const newProfile = {
                 id: user.id,
-                full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Unknown User',
+                full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'WorkNiva User',
                 email: user.email || `${user.id}@placeholder.com`,
-                role: 'customer'
+                role: isAdminEmail ? 'admin' : 'customer'
             };
             const { data: recoveredProfile, error: recoveryError } = await database_1.supabase
                 .from('profiles')
@@ -57,6 +58,12 @@ const requireAuth = async (req, res, next) => {
                 return res.status(401).json({ success: false, message: 'User profile not found and recovery failed' });
             }
             profile = recoveredProfile;
+        }
+        else if (user.email?.toLowerCase() === 'admin.workniva@gmail.com' && profile.role !== 'admin') {
+            // Auto-promote admin.workniva@gmail.com if not yet marked as admin
+            console.log(`Auto-promoting ${user.email} to admin role.`);
+            await database_1.supabase.from('profiles').update({ role: 'admin' }).eq('id', user.id);
+            profile.role = 'admin';
         }
         req.user = {
             id: user.id,

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/authMiddleware';
 import {
   getBookings,
+  getBookingById,
   updateBookingStatus,
   getPricing,
   updatePricing,
@@ -18,6 +19,7 @@ const router = Router();
 router.use(requireAuth, requireAdmin);
 
 router.get('/bookings', getBookings);
+router.get('/bookings/:id', getBookingById);
 router.patch('/bookings/:id/status', updateBookingStatus);
 
 router.get('/pricing', getPricing);
@@ -29,7 +31,7 @@ router.delete('/availability/block/:id', unblockTime);
 
 router.get('/customers', getCustomers);
 
-export default router;
-
 router.get('/notifications', getNotifications);
 router.post('/notifications/:id/retry', retryNotification);
+
+export default router;

@@ -1,4 +1,6 @@
 import { supabase } from '../config/database';
+import { config } from '../config/env';
+import { triggerBookingConfirmedNotifications } from './notificationService';
 
 export const createBookingService = async (userId: string, bookingData: any) => {
   const nowIST = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
@@ -44,7 +46,8 @@ export const createBookingService = async (userId: string, bookingData: any) => 
   }
 
   const startHour = parseInt(bookingData.startTime.split(':')[0]);
-  const endHour = startHour + (duration_minutes / 60);
+  const rawEndHour = startHour + (duration_minutes / 60);
+  const endHour = rawEndHour >= 24 ? rawEndHour % 24 : rawEndHour;
   const end_time = `${endHour.toString().padStart(2, '0')}:00:00`;
   const start_time = `${bookingData.startTime.split(':')[0].padStart(2, '0')}:00:00`;
 
@@ -63,6 +66,11 @@ export const createBookingService = async (userId: string, bookingData: any) => 
 
   const resource_id = availability.resource_id || bookingData.workspace;
 
+  const isTestingMode = config.paymentMode === 'disabled';
+  const initialStatus = isTestingMode ? 'confirmed' : 'pending_payment';
+  const specialReqPrefix = isTestingMode ? '[Testing Mode - No Payment Collected] ' : '';
+  const specialRequirements = `${specialReqPrefix}Workspace: ${bookingData.workspace} | ${bookingData.specialRequirements || ''}`;
+
   // 2. Try to use the safe RPC if the migration was applied
   const { data: rpcData, error: rpcError } = await supabase.rpc('check_and_insert_booking', {
     p_booking_code: booking_code,
@@ -73,7 +81,7 @@ export const createBookingService = async (userId: string, bookingData: any) => 
     p_duration_minutes: duration_minutes,
     p_guest_count: bookingData.guests,
     p_purpose: bookingData.purpose,
-    p_special_requirements: `Workspace: ${bookingData.workspace} | ${bookingData.specialRequirements || ''}`,
+    p_special_requirements: specialRequirements,
     p_amount: amount,
     p_resource_type: bookingData.workspace,
     p_resource_id: resource_id
@@ -91,9 +99,9 @@ export const createBookingService = async (userId: string, bookingData: any) => 
         duration_minutes,
         guest_count: bookingData.guests,
         purpose: bookingData.purpose,
-        special_requirements: `Workspace: ${bookingData.workspace} | ${bookingData.specialRequirements || ''}`,
+        special_requirements: specialRequirements,
         amount, 
-        status: 'pending_payment'
+        status: initialStatus
       }).select('*, profiles(*)').single();
 
       if (error) {
@@ -102,14 +110,29 @@ export const createBookingService = async (userId: string, bookingData: any) => 
         }
         throw new Error(error.message);
       }
-      return data;
+
+      if (isTestingMode) {
+        triggerBookingConfirmedNotifications(data).catch(console.error);
+      }
+
+      return {
+        ...data,
+        payment_mode: config.paymentMode,
+        payment_required: !isTestingMode,
+        testing_mode: isTestingMode,
+        payment_status: isTestingMode ? 'unpaid' : 'pending'
+      };
     } else {
       throw new Error(rpcError.message || "Failed to reserve the resource.");
     }
   }
 
-  // RPC succeeds, return the row
-  // We may need to fetch the full row with profiles since RPC might just return the raw row
+  // RPC succeeds: if in testing mode, update status to confirmed
+  if (isTestingMode) {
+    await supabase.from('bookings').update({ status: 'confirmed' }).eq('id', rpcData.id);
+  }
+
+  // Fetch the full row with profiles
   const { data: fullBooking, error: fetchError } = await supabase
     .from('bookings')
     .select('*, profiles(*)')
@@ -117,7 +140,18 @@ export const createBookingService = async (userId: string, bookingData: any) => 
     .single();
 
   if (fetchError) throw fetchError;
-  return fullBooking;
+
+  if (isTestingMode) {
+    triggerBookingConfirmedNotifications(fullBooking).catch(console.error);
+  }
+
+  return {
+    ...fullBooking,
+    payment_mode: config.paymentMode,
+    payment_required: !isTestingMode,
+    testing_mode: isTestingMode,
+    payment_status: isTestingMode ? 'unpaid' : 'pending'
+  };
 };
 
 export const getMyBookingsService = async (userId: string) => {
@@ -178,9 +212,10 @@ export const checkAvailabilityService = async (params: any) => {
   if (duration === 'Full Day' || duration === 'Night') duration_minutes = 480;
 
   const startHour = parseInt(startTime);
-  const endHour = startHour + (duration_minutes / 60);
+  const rawEndHour = startHour + (duration_minutes / 60);
+  const endHour = rawEndHour >= 24 ? rawEndHour % 24 : rawEndHour;
   const end_time = `${endHour.toString().padStart(2, '0')}:00:00`;
-  const start_time = `${startTime}:00:00`;
+  const start_time = `${startTime.split(':')[0].padStart(2, '0')}:00:00`;
 
   // Fetch all active bookings for this date that overlap
   const { data: bookings, error } = await supabase
@@ -193,14 +228,14 @@ export const checkAvailabilityService = async (params: any) => {
 
   // Function to check overlap
   const isOverlapping = (b: any) => {
-    // If endHour > 24, we need to handle overnight logic, but for simplicity here we assume standard hours
-    // Or we do proper time comparison.
-    // For overnight, the SQL function handles it perfectly.
     const b_startHour = parseInt(b.start_time.split(':')[0]);
-    const b_endHour = parseInt(b.end_time.split(':')[0]) || 24; // Handle 00:00 as next day
+    let b_endHour = parseInt(b.end_time.split(':')[0]);
+    if (b_endHour <= b_startHour) {
+      b_endHour += 24; // Handle overnight booking
+    }
     
     // Check overlap: start1 < end2 AND end1 > start2
-    const currentEndHour = endHour;
+    const currentEndHour = rawEndHour;
     
     return b_startHour < currentEndHour && b_endHour > startHour;
   };
@@ -234,10 +269,11 @@ export const checkAvailabilityService = async (params: any) => {
     let maxOverlapGuests = 0;
     // We should ideally check max guests at any single hour.
     // Since we just need to ensure total capacity isn't exceeded:
-    for (let h = startHour; h < endHour; h++) {
+    for (let h = startHour; h < rawEndHour; h++) {
       const guestsAtH = benchBookings.reduce((sum, b) => {
         const b_start = parseInt(b.start_time.split(':')[0]);
-        const b_end = parseInt(b.end_time.split(':')[0]) || 24;
+        let b_end = parseInt(b.end_time.split(':')[0]);
+        if (b_end <= b_start) b_end += 24;
         if (b_start <= h && b_end > h) return sum + b.guest_count;
         return sum;
       }, 0);

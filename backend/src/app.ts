@@ -11,21 +11,27 @@ import paymentRoutes from './routes/paymentRoutes';
 
 const app = express();
 
-
+// Security headers
 app.use(helmet());
 
-// Configure CORS to properly connect a separate frontend and backend
-const corsOptions = {
+// Production CORS allowlist
+const corsOptions: cors.CorsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
     const allowedOrigins = [
       config.frontendUrl,
       'http://localhost:5173',
       'http://localhost:3000',
       'http://127.0.0.1:5173',
+      'http://localhost:5080',
       'http://localhost'
     ];
+
+    if (process.env.ADDITIONAL_ALLOWED_ORIGINS) {
+      const extra = process.env.ADDITIONAL_ALLOWED_ORIGINS.split(',').map(s => s.trim());
+      allowedOrigins.push(...extra);
+    }
     
-    // Allow requests with no origin (like mobile apps, curl) or if origin is in the allowed list
+    // Allow non-browser requests (e.g. server-to-server webhooks, curl, health checks) or verified origins
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -33,36 +39,82 @@ const corsOptions = {
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature', 'x-requested-with']
 };
 
 app.use(cors(corsOptions));
 
-app.use(express.json({ limit: '10kb' })); // Request size limit
+// Preserve exact raw body buffer for Razorpay cryptographic webhook verification
+app.use(express.json({
+  limit: '100kb',
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: { success: false, message: 'Too many requests, please try again later.' }
+// Rate Limiters
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  message: { success: false, message: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
-app.use('/api', limiter);
+app.use('/api', generalLimiter);
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  message: { success: false, message: 'Too many authentication attempts, please try again later.' }
+});
+app.use('/api/auth', authLimiter);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'You Work API is running' });
+const paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: { success: false, message: 'Payment rate limit reached. Please wait a moment.' }
+});
+app.use('/api/payments/create-order', paymentLimiter);
+app.use('/api/payments/verify', paymentLimiter);
+
+// Production Health Endpoint
+app.get('/api/health', (_req, res) => {
+  res.json({
+    success: true,
+    status: 'healthy',
+    service: 'WorkNiva API',
+    version: '1.0.0',
+    environment: process.env.NODE_ENV || 'production',
+    paymentMode: config.paymentMode,
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor(process.uptime())
+  });
 });
 
-// Routes
+// Application Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
 
-// Error middleware placeholder
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (process.env.NODE_ENV !== 'production') console.error(err.stack);
-  res.status(500).json({ success: false, message: 'Something broke!' });
+// Safe Production Error Middleware
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.error('[UNCAUGHT ERROR]:', err);
+  } else {
+    console.error('[SERVER ERROR]:', err.message || 'Unknown error');
+  }
+
+  const statusCode = err.status || 500;
+  const clientMessage = process.env.NODE_ENV === 'production' && statusCode === 500
+    ? 'An internal server error occurred'
+    : (err.message || 'Something broke!');
+
+  res.status(statusCode).json({
+    success: false,
+    message: clientMessage
+  });
 });
 
 export default app;

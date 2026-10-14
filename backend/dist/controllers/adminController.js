@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCustomers = exports.unblockTime = exports.blockTime = exports.getBlockedTimes = exports.updatePricing = exports.getPricing = exports.updateBookingStatus = exports.getBookings = void 0;
+exports.getCustomers = exports.unblockTime = exports.blockTime = exports.getBlockedTimes = exports.updatePricing = exports.getPricing = exports.updateBookingStatus = exports.getBookingById = exports.getBookings = void 0;
 const adminService_1 = require("../services/adminService");
 const getBookings = async (req, res) => {
     try {
@@ -12,6 +12,17 @@ const getBookings = async (req, res) => {
     }
 };
 exports.getBookings = getBookings;
+const getBookingById = async (req, res) => {
+    try {
+        const data = await (0, adminService_1.getAdminBookingByIdService)(req.params.id);
+        res.json({ success: true, data });
+    }
+    catch (error) {
+        const status = error.message === 'Booking not found' ? 404 : 500;
+        res.status(status).json({ success: false, message: error.message });
+    }
+};
+exports.getBookingById = getBookingById;
 const updateBookingStatus = async (req, res) => {
     try {
         const data = await (0, adminService_1.updateBookingStatusService)(req.params.id, req.body.status);

@@ -1,28 +1,48 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.startCronJobs = void 0;
+exports.startCronJobs = exports.expireStalePendingBookings = void 0;
 const database_1 = require("../config/database");
-// Runs every 15 minutes to clear out pending_payment bookings older than 15 minutes
+const expireStalePendingBookings = async () => {
+    try {
+        // 15-minute validity window for pending reservations
+        const expirationThresholdMinutes = 15;
+        const expirationTime = new Date(Date.now() - expirationThresholdMinutes * 60 * 1000).toISOString();
+        const { data: expiredBookings, error } = await database_1.supabase
+            .from('bookings')
+            .update({
+            status: 'cancelled',
+            updated_at: new Date().toISOString()
+        })
+            .eq('status', 'pending_payment')
+            .lt('created_at', expirationTime)
+            .select('id, booking_code');
+        if (error) {
+            console.error('[CRON] Error expiring pending bookings:', error.message);
+            return;
+        }
+        if (expiredBookings && expiredBookings.length > 0) {
+            console.log(`[CRON] Expired ${expiredBookings.length} abandoned pending_payment reservation(s).`);
+            const expiredIds = expiredBookings.map(b => b.id);
+            // Update any associated created payments to failed
+            await database_1.supabase
+                .from('payments')
+                .update({
+                status: 'failed',
+                updated_at: new Date().toISOString()
+            })
+                .in('booking_id', expiredIds)
+                .eq('status', 'created');
+        }
+    }
+    catch (err) {
+        console.error('[CRON] Error during stale booking cleanup:', err.message);
+    }
+};
+exports.expireStalePendingBookings = expireStalePendingBookings;
 const startCronJobs = () => {
-    setInterval(async () => {
-        try {
-            const expirationTime = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-            const { data, error } = await database_1.supabase
-                .from('bookings')
-                .update({ status: 'cancelled' })
-                .eq('status', 'pending_payment')
-                .lt('created_at', expirationTime)
-                .select('id');
-            if (error) {
-                console.error('Error expiring pending bookings:', error);
-            }
-            else if (data && data.length > 0) {
-                console.log(`Expired ${data.length} pending_payment bookings.`);
-            }
-        }
-        catch (e) {
-            console.error('Cron job error:', e);
-        }
-    }, 15 * 60 * 1000);
+    // 1. Run once immediately on startup
+    (0, exports.expireStalePendingBookings)().catch(console.error);
+    // 2. Schedule recurring cleanup every 5 minutes
+    setInterval(exports.expireStalePendingBookings, 5 * 60 * 1000);
 };
 exports.startCronJobs = startCronJobs;
