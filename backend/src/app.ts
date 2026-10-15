@@ -11,36 +11,69 @@ import paymentRoutes from './routes/paymentRoutes';
 
 const app = express();
 
-// Security headers
-app.use(helmet());
+// Security headers with cross-origin resource policy enabled for API clients
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+
+// Check if an origin is permitted
+const isOriginAllowed = (origin: string): boolean => {
+  const clean = origin.trim().replace(/\/+$/, '');
+
+  // 1. Configured frontend URL
+  if (config.frontendUrl && clean === config.frontendUrl.replace(/\/+$/, '')) {
+    return true;
+  }
+
+  // 2. Extra origins from environment variable
+  if (process.env.ADDITIONAL_ALLOWED_ORIGINS) {
+    const extraOrigins = process.env.ADDITIONAL_ALLOWED_ORIGINS.split(',').map(s => s.trim().replace(/\/+$/, ''));
+    if (extraOrigins.includes(clean)) {
+      return true;
+    }
+  }
+
+  // 3. Any WorkNiva / AryahsWorld domain (e.g. workniva.aryahsworld.com, aryahsworld.com, and subdomains)
+  if (/^https?:\/\/([a-zA-Z0-9-]+\.)*aryahsworld\.com(:\d+)?$/.test(clean)) {
+    return true;
+  }
+
+  // 4. Local development origins
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(clean)) {
+    return true;
+  }
+
+  return false;
+};
 
 // Production CORS allowlist
 const corsOptions: cors.CorsOptions = {
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    const allowedOrigins = [
-      config.frontendUrl,
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'http://localhost:5080',
-      'http://localhost'
-    ];
+    // Allow non-browser requests (e.g. server-to-server webhooks, curl, health checks)
+    if (!origin) {
+      return callback(null, true);
+    }
 
-    if (process.env.ADDITIONAL_ALLOWED_ORIGINS) {
-      const extra = process.env.ADDITIONAL_ALLOWED_ORIGINS.split(',').map(s => s.trim());
-      allowedOrigins.push(...extra);
+    if (isOriginAllowed(origin)) {
+      return callback(null, true);
     }
-    
-    // Allow non-browser requests (e.g. server-to-server webhooks, curl, health checks) or verified origins
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS blocked request from origin: ${origin}`));
-    }
+
+    console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
+    // Pass null, false instead of throwing Error to prevent 500 status on preflights
+    callback(null, false);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature', 'x-requested-with']
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'x-razorpay-signature',
+    'x-requested-with',
+    'Accept',
+    'Origin'
+  ],
+  optionsSuccessStatus: 200,
+  maxAge: 86400
 };
 
 app.use(cors(corsOptions));
@@ -106,7 +139,7 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
     console.error('[SERVER ERROR]:', err.message || 'Unknown error');
   }
 
-  const statusCode = err.status || 500;
+  const statusCode = err.status || (err.message && err.message.includes('CORS') ? 403 : 500);
   const clientMessage = process.env.NODE_ENV === 'production' && statusCode === 500
     ? 'An internal server error occurred'
     : (err.message || 'Something broke!');
